@@ -1,0 +1,65 @@
+[1mdiff --git a/db.sqlite3 b/db.sqlite3[m
+[1mindex 29a4341..43eb70b 100644[m
+Binary files a/db.sqlite3 and b/db.sqlite3 differ
+[1mdiff --git a/django_movie/__pycache__/settings.cpython-38.pyc b/django_movie/__pycache__/settings.cpython-38.pyc[m
+[1mindex 9b982b3..8825636 100644[m
+Binary files a/django_movie/__pycache__/settings.cpython-38.pyc and b/django_movie/__pycache__/settings.cpython-38.pyc differ
+[1mdiff --git a/django_movie/__pycache__/urls.cpython-38.pyc b/django_movie/__pycache__/urls.cpython-38.pyc[m
+[1mindex dbd73e1..2c1b477 100644[m
+Binary files a/django_movie/__pycache__/urls.cpython-38.pyc and b/django_movie/__pycache__/urls.cpython-38.pyc differ
+[1mdiff --git a/django_movie/settings.py b/django_movie/settings.py[m
+[1mindex 9e92aa4..a1f9bac 100644[m
+[1m--- a/django_movie/settings.py[m
+[1m+++ b/django_movie/settings.py[m
+[36m@@ -9,7 +9,7 @@[m [mhttps://docs.djangoproject.com/en/4.1/topics/settings/[m
+ For the full list of settings and their values, see[m
+ https://docs.djangoproject.com/en/4.1/ref/settings/[m
+ """[m
+[31m-[m
+[32m+[m[32mimport os.path[m
+ from pathlib import Path[m
+ [m
+ # Build paths inside the project like this: BASE_DIR / 'subdir'.[m
+[36m@@ -122,3 +122,6 @@[m [mSTATIC_URL = 'static/'[m
+ # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field[m
+ [m
+ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'[m
+[32m+[m
+[32m+[m[32mMEDIA_URL = '/media/'[m
+[32m+[m[32mMEDIA_ROOT = os.path.join(BASE_DIR, 'media')[m
+\ No newline at end of file[m
+[1mdiff --git a/django_movie/urls.py b/django_movie/urls.py[m
+[1mindex 7b75301..c6210e9 100644[m
+[1m--- a/django_movie/urls.py[m
+[1m+++ b/django_movie/urls.py[m
+[36m@@ -13,9 +13,14 @@[m [mIncluding another URLconf[m
+     1. Import the include() function: from django.urls import include, path[m
+     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))[m
+ """[m
+[32m+[m[32mfrom django.conf import settings[m
+[32m+[m[32mfrom django.conf.urls.static import static[m
+ from django.contrib import admin[m
+ from django.urls import path[m
+ [m
+ urlpatterns = [[m
+     path('admin/', admin.site.urls),[m
+ ][m
+[32m+[m
+[32m+[m[32mif settings.DEBUG:[m
+[32m+[m[32m    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)[m
+[1mdiff --git a/movies/__pycache__/models.cpython-38.pyc b/movies/__pycache__/models.cpython-38.pyc[m
+[1mindex 8e7ddbd..2b6ae81 100644[m
+Binary files a/movies/__pycache__/models.cpython-38.pyc and b/movies/__pycache__/models.cpython-38.pyc differ
+[1mdiff --git a/movies/models.py b/movies/models.py[m
+[1mindex 81a7c60..cd7c5cb 100644[m
+[1m--- a/movies/models.py[m
+[1m+++ b/movies/models.py[m
+[36m@@ -19,7 +19,7 @@[m [mclass Category(models.Model):[m
+ class Actor(models.Model):[m
+     """Актеры"""[m
+     name = models.CharField("Имя", max_length=100)[m
+[31m-    age = models.PositiveSmallIntegerField("Возраст", default=0)[m
+[32m+[m[32m    age = models.DateField("Возраст")[m
+     description = models.TextField("Описание")[m
+     image = models.ImageField("Изображение", upload_to='actors/')[m
+ [m
