@@ -72,6 +72,8 @@ class Movie(models.Model):
     def get_absolute_url(self):
         return reverse('movie_detail', kwargs={'slug': self.url})
 
+    def get_review(self):
+        return self.reviews_set.filter(parent__isnull=True)
     class Meta:
         verbose_name = 'Фильм'
         verbose_name_plural = 'Фильмы'
@@ -122,7 +124,7 @@ class Reviews(models.Model):
     """Отзывы"""
     email = models.EmailField()
     name = models.CharField("Имя", max_length=150)
-    text = models.TextField('Текст', max_length=5000)
+    text = models.TextField('Текст', max_length=500)
     parent = models.ForeignKey('self', verbose_name='Родитель', on_delete=models.SET_NULL, blank=True, null=True)
     movie = models.ForeignKey(Movie, verbose_name='Фильм', on_delete=models.CASCADE)
 
