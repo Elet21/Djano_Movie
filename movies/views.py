@@ -1,23 +1,37 @@
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 
-# Create your views here.
 from django.views import View
 from django.views.generic import ListView, DetailView
 
-from .forms import ReviewForm
-from .models import Movie, Category, Actor
+from .forms import ReviewForm, RatingForm
+from .models import Movie, Category, Actor, Genre, Rating
 
 
-class MoviesListView(ListView):
+class GenreYears:
+    def get_genre(self):
+        return Genre.objects.all()
+
+    def get_years(self):
+        return Movie.objects.filter(draft=False).values('year')
+
+
+class MoviesListView(GenreYears, ListView):
     """Список постов"""
     model = Movie
     queryset = Movie.objects.filter(draft=False)
 
 
-class MovieDetailView(DetailView):
+class MovieDetailView(GenreYears, DetailView):
     """Описание фильма"""
     model = Movie
     slug_field = "url"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['star_form'] = RatingForm()
+        return context
 
 
 class AddReview(View):
@@ -35,8 +49,50 @@ class AddReview(View):
         return redirect(movie.get_absolute_url())
 
 
-class ActorDetailView(DetailView):
-    """Описание режисера"""
+class AddRating(View):
+    """Добавление рейтинга"""
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        print(x_forwarded_for)
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def post(self, request):
+        form = RatingForm(request.POST)
+        if form.is_valid():
+            Rating.objects.update_or_create(
+                ip=self.get_client_ip(request),
+                movie_id=int(request.POST.get('movie')),
+                defaults={'star_id': int(request.POST.get('star'))}
+            )
+            return HttpResponse(status=201)
+        else:
+            return HttpResponse(status=400)
+
+
+class ActorDetailView(GenreYears, DetailView):
+    """Описание актера или режисера"""
     model = Actor
     template_name = 'movies/actor.html'
     slug_field = 'name'
+
+
+class FilterMovieView(GenreYears, ListView):
+    """Фильтрация фильмов"""
+    def get_queryset(self):
+        if 'year' in self.request.GET and 'genre' in self.request.GET:
+            queryset = Movie.objects.filter(
+                year__in=self.request.GET.getlist('year'),
+                genre__in=self.request.GET.getlist('genre')
+            ).distinct()
+        else:
+            queryset = Movie.objects.filter(
+                Q(year__in=self.request.GET.getlist('year')) |
+                Q(genre__in=self.request.GET.getlist('genre'))
+            ).distinct()
+        return queryset
+
+
